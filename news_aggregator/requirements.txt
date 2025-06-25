@@ -1,7 +1,0 @@
-flask
-mysql-connector-python
-python-dotenv
-requests
-schedule
-bcrypt
-email-validators
