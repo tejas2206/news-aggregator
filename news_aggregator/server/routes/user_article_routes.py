@@ -33,7 +33,7 @@ def get_headlines_by_range_internal(start, end, category="all"):
             FROM news_articles n
             LEFT JOIN categories c ON n.category_id = c.id
             WHERE DATE(n.published_at) BETWEEN %s AND %s
-              AND n.is_hidden = 0
+              AND n.is_hidden = 0 AND (c.hidden = 0 OR c.hidden IS NULL)
             ORDER BY n.published_at DESC
             LIMIT 20
         """,
@@ -47,7 +47,7 @@ def get_headlines_by_range_internal(start, end, category="all"):
             LEFT JOIN categories c ON n.category_id = c.id
             WHERE DATE(n.published_at) BETWEEN %s AND %s
               AND c.name = %s
-              AND n.is_hidden = 0
+              AND n.is_hidden = 0 AND (c.hidden = 0 OR c.hidden IS NULL)
             ORDER BY n.published_at DESC
             LIMIT 20
         """,

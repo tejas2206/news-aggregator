@@ -76,3 +76,12 @@ class AdminService:
         article_id = input("Enter Article ID to hide: ")
         result = requests.post(f"{self.base_url}/admin/articles/hide", json={"article_id": article_id})
         print(result.json().get("message"))
+
+    def toggle_category_visibility(self):
+        category = input("Enter category to toggle visibility: ").strip().lower()
+        result = requests.post(
+            f"{self.base_url}/admin/categories/toggle",
+            json={"category": category}
+        )
+        data = result.json()
+        print(data.get("message", "Error toggling category."))

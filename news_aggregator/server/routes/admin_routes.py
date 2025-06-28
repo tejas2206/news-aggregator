@@ -95,3 +95,22 @@ def admin_hide_article():
     cursor.close()
     status = "hidden" if hide else "unhidden"
     return jsonify({"status": "success", "message": f"Article {article_id} {status} successfully."})
+
+@admin_bp.route("/categories/toggle", methods=["POST"])
+def toggle_category_visibility():
+    data = request.get_json()
+    category_name = data.get("category")
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE categories
+        SET hidden = NOT hidden
+        WHERE name = %s
+    """, (category_name,))
+    
+    conn.commit()
+    cursor.close()
+
+    return jsonify({"status": "success", "message": f"Visibility toggled for category '{category_name}'."})

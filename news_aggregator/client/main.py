@@ -48,7 +48,8 @@ def admin_menu():
         print("4. Add News Category")
         print("5. View Reported Articles")
         print("6. Hide Article Visibility")
-        print("7. Logout")
+        print("7. Toggle Category Visibility")
+        print("8. Logout")
 
         choice = input("Choose: ").strip()
         if choice == "1":
@@ -64,6 +65,8 @@ def admin_menu():
         elif choice == "6":
             admin.hide_article_visibility()
         elif choice == "7":
+            admin.toggle_category_visibility()
+        elif choice == "8":
             print("Logging out of admin dashboard.")
             break
         else:

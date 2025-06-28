@@ -16,7 +16,6 @@ def create_app():
     app = Flask(__name__)
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "default_secret")
 
-    # Register Blueprints
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(user_article_bp, url_prefix="/user")
     app.register_blueprint(user_notification_bp, url_prefix="/user")
