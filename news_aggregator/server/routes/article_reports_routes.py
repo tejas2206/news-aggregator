@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify
 from server.db.database import get_db
-from datetime import datetime
 
 article_report_bp = Blueprint("article_report", __name__)
 

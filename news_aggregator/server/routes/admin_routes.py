@@ -114,3 +114,44 @@ def toggle_category_visibility():
     cursor.close()
 
     return jsonify({"status": "success", "message": f"Visibility toggled for category '{category_name}'."})
+
+@admin_bp.route("/blocked_keywords", methods=["POST"])
+def add_blocked_keyword():
+    data = request.get_json()
+    keyword = data.get("keyword")
+
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT IGNORE INTO blocked_keywords (keyword)
+        VALUES (%s)
+    """, (keyword,))
+    conn.commit()
+    cursor.close()
+
+    return jsonify({"status": "success", "message": f"Keyword '{keyword}' blocked."})
+
+@admin_bp.route("/blocked_keywords", methods=["DELETE"])
+def delete_blocked_keyword():
+    keyword = request.args.get("keyword")
+
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        DELETE FROM blocked_keywords
+        WHERE keyword = %s
+    """, (keyword,))
+    conn.commit()
+    cursor.close()
+
+    return jsonify({"status": "success", "message": f"Keyword '{keyword}' unblocked."})
+
+@admin_bp.route("/blocked_keywords", methods=["GET"])
+def list_blocked_keywords():
+    conn = get_db()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT keyword FROM blocked_keywords")
+    keywords = [row["keyword"] for row in cursor.fetchall()]
+    cursor.close()
+
+    return jsonify({"status": "success", "keywords": keywords})

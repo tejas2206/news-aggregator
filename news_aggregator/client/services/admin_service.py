@@ -85,3 +85,32 @@ class AdminService:
         )
         data = result.json()
         print(data.get("message", "Error toggling category."))
+
+    def manage_blocked_keywords(self):
+        while True:
+            print("\n1. Add Blocked Keyword")
+            print("2. Remove Blocked Keyword")
+            print("3. View Blocked Keywords")
+            print("4. Back")
+            choice = input("Choose: ")
+
+            if choice == "1":
+                keyword = input("Enter keyword to block: ").strip().lower()
+                res = requests.post(
+                    f"{self.base_url}/admin/blocked_keywords",
+                    json={"keyword": keyword}
+                )
+                print(res.json().get("message"))
+            elif choice == "2":
+                keyword = input("Enter keyword to unblock: ").strip().lower()
+                res = requests.delete(
+                    f"{self.base_url}/admin/blocked_keywords",
+                    params={"keyword": keyword}
+                )
+                print(res.json().get("message"))
+            elif choice == "3":
+                res = requests.get(f"{self.base_url}/admin/blocked_keywords")
+                data = res.json()
+                print("Blocked Keywords:", ", ".join(data["keywords"]))
+            elif choice == "4":
+                break

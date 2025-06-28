@@ -49,7 +49,8 @@ def admin_menu():
         print("5. View Reported Articles")
         print("6. Hide Article Visibility")
         print("7. Toggle Category Visibility")
-        print("8. Logout")
+        print("8. Manage blocked keywords")
+        print("9. Logout")
 
         choice = input("Choose: ").strip()
         if choice == "1":
@@ -67,6 +68,8 @@ def admin_menu():
         elif choice == "7":
             admin.toggle_category_visibility()
         elif choice == "8":
+            admin.manage_blocked_keywords()
+        elif choice == "9":
             print("Logging out of admin dashboard.")
             break
         else:

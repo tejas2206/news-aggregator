@@ -22,42 +22,91 @@ def get_headlines_by_range():
     return get_headlines_by_range_internal(start_date, end_date, category)
 
 
+# def get_headlines_by_range_internal(start, end, category="all"):
+#     conn = get_db()
+#     cursor = conn.cursor(dictionary=True)
+
+#     cursor.execute("SELECT keyword FROM blocked_keywords")
+#     keywords = [row["keyword"] for row in cursor.fetchall()]
+
+#     blocked_clauses = []
+#     params = []
+#     for keyword in keywords:
+#         blocked_clauses.append("(n.title NOT LIKE %s AND n.content NOT LIKE %s)")
+#         params.extend([f"%{keyword}%", f"%{keyword}%"])
+
+#     if category == "all":
+#         query = """
+#             SELECT n.id, n.title, n.url, c.name as category
+#             FROM news_articles n
+#             LEFT JOIN categories c ON n.category_id = c.id
+#             WHERE DATE(n.published_at) BETWEEN %s AND %s
+#               AND n.is_hidden = 0 AND (c.hidden = 0 OR c.hidden IS NULL)
+#             ORDER BY n.published_at DESC
+#             LIMIT 20
+#         """
+#         query_params = [start, end]
+#     else:
+#         query = """
+#             SELECT n.id, n.title, n.url, c.name as category
+#             FROM news_articles n
+#             LEFT JOIN categories c ON n.category_id = c.id
+#             WHERE DATE(n.published_at) BETWEEN %s AND %s
+#               AND c.name = %s
+#               AND n.is_hidden = 0 AND (c.hidden = 0 OR c.hidden IS NULL)
+#             ORDER BY n.published_at DESC
+#             LIMIT 20
+#         """
+#         query_params = [start, end, category]
+
+#     if blocked_clauses:
+#         query += " AND " + " AND ".join(blocked_clauses)
+#         query_params.extend(params)
+
+#     cursor.execute(query, query_params)
+
+#     rows = cursor.fetchall()
+#     cursor.close()
+#     return jsonify({"status": "success", "articles": rows})
+
 def get_headlines_by_range_internal(start, end, category="all"):
     conn = get_db()
     cursor = conn.cursor(dictionary=True)
 
-    if category == "all":
-        cursor.execute(
-            """
-            SELECT n.id, n.title, n.url, c.name as category
-            FROM news_articles n
-            LEFT JOIN categories c ON n.category_id = c.id
-            WHERE DATE(n.published_at) BETWEEN %s AND %s
-              AND n.is_hidden = 0 AND (c.hidden = 0 OR c.hidden IS NULL)
-            ORDER BY n.published_at DESC
-            LIMIT 20
-        """,
-            (start, end),
-        )
-    else:
-        cursor.execute(
-            """
-            SELECT n.id, n.title, n.url, c.name as category
-            FROM news_articles n
-            LEFT JOIN categories c ON n.category_id = c.id
-            WHERE DATE(n.published_at) BETWEEN %s AND %s
-              AND c.name = %s
-              AND n.is_hidden = 0 AND (c.hidden = 0 OR c.hidden IS NULL)
-            ORDER BY n.published_at DESC
-            LIMIT 20
-        """,
-            (start, end, category),
-        )
+    cursor.execute("SELECT keyword FROM blocked_keywords")
+    keywords = [row["keyword"] for row in cursor.fetchall()]
 
+    blocked_clauses = []
+    blocked_params = []
+    for keyword in keywords:
+        blocked_clauses.append("(n.title NOT LIKE %s AND n.content NOT LIKE %s)")
+        blocked_params.extend([f"%{keyword}%", f"%{keyword}%"])
+
+    query = """
+        SELECT n.id, n.title, n.url, c.name as category
+        FROM news_articles n
+        LEFT JOIN categories c ON n.category_id = c.id
+        WHERE DATE(n.published_at) BETWEEN %s AND %s
+    """
+    query_params = [start, end]
+
+    if category != "all":
+        query += " AND c.name = %s"
+        query_params.append(category)
+
+    query += " AND n.is_hidden = 0 AND (c.hidden = 0 OR c.hidden IS NULL)"
+
+    if blocked_clauses:
+        query += " AND " + " AND ".join(blocked_clauses)
+        query_params.extend(blocked_params)
+
+    query += " ORDER BY n.published_at DESC LIMIT 20"
+
+    cursor.execute(query, query_params)
     rows = cursor.fetchall()
     cursor.close()
-    return jsonify({"status": "success", "articles": rows})
 
+    return jsonify({"status": "success", "articles": rows})
 
 @user_article_bp.route("/articles/saved", methods=["GET"])
 def view_saved_articles():
