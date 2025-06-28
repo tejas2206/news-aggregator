@@ -6,18 +6,17 @@ class NotificationServiceCLI:
         self.session = session
         self.base_url = base_url
 
-    # def view_notifications(self):
-    #     result = requests.get(
-    #         f"{self.base_url}/user/notifications",
-    #         params={"email": self.session["email"]},
-    #     )
-    #     data = result.json()
-    #     print("\nC O N F I G U R E - N O T I F I C A T I O N S\n")
-    #     print("Categories:")
-    #     for item in data.get("categories", []):
-    #         status = "Enabled" if item["enabled"] else "Disabled"
-    #         print(f" - {item['category']}: {status}")
-    #     print("Keywords:", ", ".join(data.get("keywords", [])))
+    def configured_notifications_settings(self):
+        result = requests.get(
+            f"{self.base_url}/user/notifications",
+            params={"email": self.session["email"]},
+        )
+        data = result.json()
+        print("Categories:")
+        for item in data.get("categories", []):
+            status = "Enabled" if item["enabled"] else "Disabled"
+            print(f" - {item['category']}: {status}")
+        print("Keywords:", ", ".join(data.get("keywords", [])))
 
     def view_notifications(self):
         email = self.session["email"]
@@ -35,9 +34,9 @@ class NotificationServiceCLI:
 
 
     def configure_notifications(self):
-        self.view_notifications()
         print("\nC O N F I G U R E - N O T I F I C A T I O N S\n")
-        print("\n1. Enable Category\n2. Add Keyword\n3. Remove Keyword\n4. Back")
+        self.configured_notifications_settings()
+        print("\n1. Toggle Category\n2. Add Keyword\n3. Remove Keyword\n4. Back")
         option = input("Choose: ")
 
         if option == "1":
