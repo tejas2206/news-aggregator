@@ -52,34 +52,3 @@ def dislike_article():
     conn.commit()
     cursor.close()
     return jsonify({"status": "success", "message": "You disliked this article."}), 200
-
-
-@user_feedback_bp.route("/articles/report", methods=["POST"])
-def report_article():
-    data = request.get_json()
-    email = data.get("email")
-    article_id = data.get("article_id")
-
-    conn = get_db()
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
-    user = cursor.fetchone()
-    if not user:
-        return jsonify({"status": "error", "message": "User not found"}), 404
-
-    cursor.execute(
-        """
-        INSERT INTO article_reports (user_id, article_id)
-        VALUES (%s, %s)
-        ON DUPLICATE KEY UPDATE article_id = article_id
-        """,
-        (user[0], article_id),
-    )
-    conn.commit()
-
-    notifier = NotificationService()
-    notifier.notify_admin_about_report(article_id, email)
-
-    cursor.close()
-    return jsonify({"status": "success", "message": "Article reported."})
