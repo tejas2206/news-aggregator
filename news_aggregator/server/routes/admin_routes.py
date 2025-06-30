@@ -86,7 +86,7 @@ def view_reported_articles():
 def admin_hide_article():
     data = request.get_json()
     article_id = data.get("article_id")
-    hide = data.get("hide", True)  # pass hide: true/false
+    hide = data.get("hide", True)
 
     conn = get_db()
     cursor = conn.cursor()

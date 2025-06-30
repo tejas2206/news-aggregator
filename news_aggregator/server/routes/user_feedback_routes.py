@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify
 from server.db.database import get_db
-from server.services.notification_service import NotificationService
 
 user_feedback_bp = Blueprint("user_feedback", __name__)
 

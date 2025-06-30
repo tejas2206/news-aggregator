@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from server.db.database import get_db
+from server.services.notification_service import NotificationService
 
 article_report_bp = Blueprint("article_report", __name__)
 
@@ -35,6 +36,9 @@ def report_article():
     if report_count >= REPORT_THRESHOLD:
         cursor.execute("UPDATE news_articles SET is_hidden = 1 WHERE id = %s", (article_id,))
         conn.commit()
+
+    notifier = NotificationService()
+    notifier.notify_admin_about_report(article_id, email)
 
     cursor.close()
     return jsonify({"status": "success", "message": "Article reported successfully."})

@@ -69,31 +69,6 @@ class NotificationService:
 
         return keyword_match
 
-    # def _send_email(self, recipient, articles):
-    #     if not self.email_user or not self.email_pass:
-    #         print("Email not configured in .env")
-    #         return
-
-    #     msg = EmailMessage()
-    #     msg["Subject"] = "News Alert - Matching Articles"
-    #     msg["From"] = self.email_user
-    #     msg["To"] = recipient
-
-    #     body = "Hello!\nHere are some articles matching your preferences:\n\n"
-    #     for article in articles:
-    #         body += f"{article['title']} ({article['url']})\n"
-
-    #     body += "\nRegards,\nNews Aggregator Team"
-    #     msg.set_content(body)
-
-    #     try:
-    #         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-    #             smtp.login(self.email_user, self.email_pass)
-    #             smtp.send_message(msg)
-    #             print(f"Email sent to {recipient}")
-
-    #     except Exception as e:
-    #         print(f"Failed to send email to {recipient}: {e}")
 
     def _send_email(self, user_id, recipient, articles):
         if not self.email_user or not self.email_pass:

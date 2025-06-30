@@ -20,14 +20,14 @@ class NotificationServiceCLI:
 
     def view_notifications(self):
         email = self.session["email"]
-        res = requests.get(f"{self.base_url}/user/notifications/history", params={"email": email})
-        data = res.json()
+        result = requests.get(f"{self.base_url}/user/notifications/history", params={"email": email})
+        data = result.json()
 
         if data["status"] == "success":
             print("\nSent Notifications:")
-            for n in data["notifications"]:
-                print(f"{n['sent_at']} - {n['title']}")
-                print(f"URL: {n['url']}")
+            for notification in data["notifications"]:
+                print(f"{notification['sent_at']} - {notification['title']}")
+                print(f"URL: {notification['url']}")
                 # print(f"Message: {n['message']}\n")
         else:
             print("Failed to fetch notifications.")
