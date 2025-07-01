@@ -90,16 +90,62 @@ class NewsService:
             article_id = input("Enter Article ID to delete: ").strip()
             self.delete_article(article_id)
 
+
     def search_articles(self):
-        print("\nS E A R C H\n")
-        query = input("Enter search keyword: ")
-        result = requests.get(f"{self.base_url}/user/search", params={"q": query})
-        articles = result.json().get("articles", [])
-        self.display_articles(articles)
-        print("\n1. Save Article\n2. Back")
-        if input("Choose: ").strip() == "1":
-            article_id = input("Enter Article ID to save: ").strip()
-            self.save_article(article_id)
+        query = input("Enter search query: ").strip()
+
+        filter_date = input("Filter by date range? (y/n): ").strip().lower()
+        start_date = end_date = None
+        if filter_date == "y":
+            start_date = input("From date (YYYY-MM-DD): ").strip()
+            end_date = input("To date (YYYY-MM-DD): ").strip()
+        elif filter_date == "n":
+            print("Skipping date filter.")
+        else:
+            print("Invalid input. Skipping date filter.")       
+        print("Sort by:")
+        print("1. Published date")
+        print("2. Likes descending")
+        print("3. Dislikes descending")
+        sort_choice = input("Choose option: ").strip()
+
+        if sort_choice == "2":
+            sort_by = "likes"
+        elif sort_choice == "3":
+            sort_by = "dislikes"
+        else:
+            sort_by = "published_at"
+
+        params = {
+            "q": query,
+            "sort_by": sort_by,
+        }
+        if start_date and end_date:
+            params["from"] = start_date
+            params["to"] = end_date
+
+        res = requests.get(f"{self.base_url}/user/search", params=params)
+
+        if res.status_code != 200:
+            print("Search failed:", res.status_code)
+            return
+
+        articles = res.json().get("articles", [])
+        if not articles:
+            print("No articles found.")
+            return
+
+        print("\nSearch Results:\n")
+        for art in articles:
+            print(f"ID: {art['id']}")
+            print(f"Title: {art['title']}")
+            print(f"Source: {art['source']}")
+            print(f"Published: {art['published_at']}")
+            print(f"Category: {art['category']}")
+            print(f"Likes: {art['likes']}, Dislikes: {art['dislikes']}")
+            print(f"URL: {art['url']}")
+            print("-" * 50)
+
 
     def handle_headlines(self):
         print("\nH E A D L I N E S\n")

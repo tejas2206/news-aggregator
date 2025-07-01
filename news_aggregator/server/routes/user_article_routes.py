@@ -137,26 +137,51 @@ def delete_saved_article(article_id):
 @user_article_bp.route("/search", methods=["GET"])
 def search_articles():
     query = request.args.get("q", "")
+    start_date = request.args.get("from")
+    end_date = request.args.get("to")
+    sort_by = request.args.get("sort_by", "published_at")
+
+    sql = """
+        SELECT
+            na.id,
+            na.title,
+            na.url,
+            na.content,
+            na.source,
+            na.published_at,
+            c.name AS category,
+            COALESCE(SUM(CASE WHEN nf.feedback_type = 'like' THEN 1 ELSE 0 END), 0) AS likes,
+            COALESCE(SUM(CASE WHEN nf.feedback_type = 'dislike' THEN 1 ELSE 0 END), 0) AS dislikes
+        FROM news_articles na
+        LEFT JOIN categories c ON na.category_id = c.id
+        LEFT JOIN article_feedback nf ON na.id = nf.article_id
+        WHERE (na.title LIKE %s OR na.content LIKE %s)
+    """
+
+    params = [f"%{query}%", f"%{query}%"]
+
+    if start_date and end_date:
+        sql += " AND DATE(na.published_at) BETWEEN %s AND %s"
+        params.extend([start_date, end_date])
+
+    sql += " GROUP BY na.id "
+
+    if sort_by == "likes":
+        sql += " ORDER BY likes DESC"
+    elif sort_by == "dislikes":
+        sql += " ORDER BY dislikes DESC"
+    else:
+        sql += " ORDER BY na.published_at DESC"
+
+    sql += " LIMIT 20"
+
     conn = get_db()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute(
-        """
-        SELECT id, title, url, content, source, published_at, category_id
-        FROM news_articles
-        WHERE title LIKE %s OR content LIKE %s
-        ORDER BY published_at DESC
-        LIMIT 10
-    """,
-        (f"%{query}%", f"%{query}%"),
-    )
-    results = cursor.fetchall()
-
-    for row in results:
-        cursor.execute(
-            "SELECT name FROM categories WHERE id = %s", (row["category_id"],)
-        )
-        category = cursor.fetchone()
-        row["category"] = category["name"] if category else "general"
-
+    cursor.execute(sql, params)
+    articles = cursor.fetchall()
     cursor.close()
-    return jsonify({"status": "success", "articles": results})
+
+    return jsonify({
+        "status": "success",
+        "articles": articles
+    })

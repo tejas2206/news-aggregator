@@ -64,41 +64,6 @@ class NewsScheduler:
             self._update_server_status(source_name, False)
             return []
 
-    # def _save_articles_to_db(self, articles):
-    #     conn = get_db()
-    #     cursor = conn.cursor()
-
-    #     insert_query = """
-    #         INSERT INTO news_articles 
-    #         (external_id, title, content, url, source, category_id, published_at)
-    #         VALUES (%s, %s, %s, %s, %s, %s, %s)
-    #         ON DUPLICATE KEY UPDATE 
-    #             title = VALUES(title), 
-    #             content = VALUES(content)
-    #     """
-
-    #     count = 0
-    #     for article in articles:
-    #         try:
-    #             cursor.execute(
-    #                 insert_query,
-    #                 (
-    #                     article.get("external_id"),
-    #                     article.get("title"),
-    #                     article.get("content"),
-    #                     article.get("url"),
-    #                     article.get("source"),
-    #                     article.get("category_id"),
-    #                     article.get("published_at"),
-    #                 ),
-    #             )
-    #             count += 1
-    #         except Exception as e:
-    #             print(f"[WARNING] Skipped article: {e}")
-
-    #     conn.commit()
-    #     cursor.close()
-    #     return count
 
     def _save_articles_to_db(self, articles):
         conn = get_db()
@@ -111,7 +76,7 @@ class NewsScheduler:
             ON DUPLICATE KEY UPDATE 
                 title = VALUES(title), 
                 content = VALUES(content),
-                id = LAST_INSERT_ID(id)  -- Ensures we always get the current ID
+                id = LAST_INSERT_ID(id)
         """
 
         select_query = "SELECT id FROM news_articles WHERE external_id = %s"
