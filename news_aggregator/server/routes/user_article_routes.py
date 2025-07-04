@@ -150,11 +150,11 @@ def search_articles():
             na.source,
             na.published_at,
             c.name AS category,
-            COALESCE(SUM(CASE WHEN nf.feedback_type = 'like' THEN 1 ELSE 0 END), 0) AS likes,
-            COALESCE(SUM(CASE WHEN nf.feedback_type = 'dislike' THEN 1 ELSE 0 END), 0) AS dislikes
+            COALESCE(SUM(CASE WHEN af.feedback_type = 'like' THEN 1 ELSE 0 END), 0) AS likes,
+            COALESCE(SUM(CASE WHEN af.feedback_type = 'dislike' THEN 1 ELSE 0 END), 0) AS dislikes
         FROM news_articles na
         LEFT JOIN categories c ON na.category_id = c.id
-        LEFT JOIN article_feedback nf ON na.id = nf.article_id
+        LEFT JOIN article_feedback af ON na.id = af.article_id
         WHERE (na.title LIKE %s OR na.content LIKE %s)
     """
 
@@ -173,7 +173,7 @@ def search_articles():
     else:
         sql += " ORDER BY na.published_at DESC"
 
-    sql += " LIMIT 20"
+    sql += " LIMIT 10"
 
     conn = get_db()
     cursor = conn.cursor(dictionary=True)

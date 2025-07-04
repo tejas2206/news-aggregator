@@ -102,7 +102,7 @@ class NewsService:
         elif filter_date == "n":
             print("Skipping date filter.")
         else:
-            print("Invalid input. Skipping date filter.")       
+            print("Invalid input. Skipping date filter.")
         print("Sort by:")
         print("1. Published date")
         print("2. Likes descending")
