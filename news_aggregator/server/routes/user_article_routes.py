@@ -185,3 +185,12 @@ def search_articles():
         "status": "success",
         "articles": articles
     })
+
+@user_article_bp.route("/categories", methods=["GET"])
+def get_categories():
+    conn = get_db()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT name FROM categories WHERE hidden = 0 OR hidden IS NULL")
+    categories = [row["name"] for row in cursor.fetchall()]
+    cursor.close()
+    return jsonify({"status": "success", "categories": categories})

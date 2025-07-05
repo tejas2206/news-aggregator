@@ -6,17 +6,22 @@ class NewsService:
         self.base_url = base_url
         self.session = session
 
-    def get_category_map(self):
-        return {
-            "1": "all",
-            "2": "business",
-            "3": "entertainment",
-            "4": "sports",
-            "5": "technology",
-        }
+    def fetch_categories(self):
+        try:
+            res = requests.get(f"{self.base_url}/user/categories")
+            data = res.json()
+            if data.get("status") == "success":
+                return ["all"] + data.get("categories", [])
+            else:
+                print("Failed to fetch categories.")
+                return ["all"]
+        except Exception as e:
+            print("Error fetching categories:", str(e))
+            return ["all"]
 
     def show_categories(self):
-        category_map = self.get_category_map()
+        categories = self.fetch_categories()
+        category_map = {str(i + 1): cat for i, cat in enumerate(categories)}
         for key, value in category_map.items():
             print(f"{key}. {value.title()}")
         return category_map
