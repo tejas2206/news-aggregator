@@ -1,17 +1,20 @@
-import os
 import requests
-from dotenv import load_dotenv
-from pathlib import Path
 from datetime import datetime
 from server.db.database import get_db
 from server.sources.base_source import NewsSource
 
-load_dotenv(Path(__file__).resolve().parents[2] / ".env")
-
 
 class TheNewsAPISource(NewsSource):
     def __init__(self):
-        self.api_key = os.getenv("THE_NEWS_API_KEY")
+        self.api_key = self._get_api_key_from_db()
+
+    def _get_api_key_from_db(self):
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("SELECT api_key FROM external_servers WHERE name = %s", ("The News API",))
+        row = cursor.fetchone()
+        cursor.close()
+        return row[0] if row else None
 
     def fetch_articles(self):
         if not self.api_key:

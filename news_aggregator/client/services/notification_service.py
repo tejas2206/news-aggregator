@@ -27,8 +27,6 @@ class NotificationServiceCLI:
             print("\nSent Notifications:")
             for notification in data["notifications"]:
                 print(f"{notification['sent_at']} - {notification['title']}")
-                print(f"URL: {notification['url']}")
-                # print(f"Message: {n['message']}\n")
         else:
             print("Failed to fetch notifications.")
 

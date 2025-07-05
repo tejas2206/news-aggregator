@@ -82,7 +82,7 @@ class NotificationService:
 
         body = "Hello!\nHere are some articles matching your preferences:\n\n"
         for article in articles:
-            body += f"{article['title']} ({article['url']})\n"
+            body += f"{article['title']} ({article['url']})\n\n"
 
         body += "\nRegards,\nNews Aggregator Team"
         msg.set_content(body)

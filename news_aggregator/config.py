@@ -9,6 +9,3 @@ DB_CONFIG = {
     'password': os.getenv("DB_PASSWORD", ""),
     'database': os.getenv("DB_NAME", "news_aggregator")
 }
-
-NEWSAPI_KEY = os.getenv("NEWSAPI_KEY")
-THENEWSAPI_KEY = os.getenv("THENEWSAPI_KEY")

@@ -15,9 +15,6 @@ class NewsScheduler:
         self.notifier = NotificationService()
 
     def run(self):
-        """
-        Start the scheduler: run once immediately, then every 4 hours.
-        """
         self._fetch_and_process_articles()
         schedule.every(4).hours.do(self._fetch_and_process_articles)
         print("Scheduler is active. It will run every 4 hours.")
@@ -26,9 +23,6 @@ class NewsScheduler:
             time.sleep(60)
 
     def _load_fetchers(self):
-        """
-        Dynamically load all classes that inherit from NewsSource in the sources package.
-        """
         fetchers = []
 
         for _, module_name, _ in pkgutil.iter_modules(sources.__path__):

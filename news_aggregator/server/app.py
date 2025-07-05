@@ -6,15 +6,10 @@ from server.routes.admin_routes import admin_bp
 from server.routes.user_feedback_routes import user_feedback_bp
 from server.routes.article_reports_routes import article_report_bp
 from server.db.database import init_db
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 
 def create_app():
     app = Flask(__name__)
-    app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "default_secret")
 
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(user_article_bp, url_prefix="/user")

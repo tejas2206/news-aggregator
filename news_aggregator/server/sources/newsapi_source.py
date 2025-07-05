@@ -1,40 +1,58 @@
-import os
 import requests
-from dotenv import load_dotenv
-from pathlib import Path
 from datetime import datetime
 from server.db.database import get_db
 from server.sources.base_source import NewsSource
 
-load_dotenv(Path(__file__).resolve().parents[2] / ".env")
-
 
 class NewsAPISource(NewsSource):
     def __init__(self):
-        self.api_key = os.getenv("NEWS_API_KEY")
+        self.api_key = self._get_api_key_from_db()
+        self.categories = [
+            "business",
+            "entertainment",
+            "general",
+            "health",
+            "science",
+            "sports",
+            "technology"
+        ]
+
+    def _get_api_key_from_db(self):
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("SELECT api_key FROM external_servers WHERE name = %s", ("News API",))
+        row = cursor.fetchone()
+        cursor.close()
+        return row[0] if row else None
 
     def fetch_articles(self):
         if not self.api_key:
             print("NEWS_API_KEY not configured.")
             return []
 
-        url = f"https://newsapi.org/v2/top-headlines?language=en&pageSize=10&apiKey={self.api_key}"
-        result = requests.get(url)
-        if result.status_code != 200:
-            print("NewsAPI failed:", result.status_code)
-            return []
+        all_articles = []
+        for category in self.categories:
+            url = (
+                f"https://newsapi.org/v2/top-headlines"
+                f"?country=us&category={category}&pageSize=10&apiKey={self.api_key}"
+            )
+            result = requests.get(url)
+            if result.status_code != 200:
+                print(f"NewsAPI failed for category '{category}':", result.status_code)
+                continue
+            all_articles.extend(self._parse_articles(result.json(), category))
+        return all_articles
 
-        return self._parse_articles(result.json())
-
-    def _parse_articles(self, data):
+    def _parse_articles(self, data, category):
         conn = get_db()
         cursor = conn.cursor()
         articles = []
 
+        cursor.execute("SELECT id FROM categories WHERE name = %s", (category.lower(),))
+        row = cursor.fetchone()
+        category_id = row[0] if row else None
+
         for article in data.get("articles", []):
-            cursor.execute("SELECT id FROM categories WHERE name = %s", ("general",))
-            row = cursor.fetchone()
-            category_id = row[0] if row else None
             articles.append(
                 {
                     "external_id": article.get("url"),
@@ -64,3 +82,4 @@ class NewsAPISource(NewsSource):
                 )
             except:
                 return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            

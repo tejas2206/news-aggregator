@@ -1,6 +1,5 @@
 import requests
 
-
 class NewsService:
     def __init__(self, base_url, session):
         self.base_url = base_url
@@ -32,13 +31,11 @@ class NewsService:
         for article in articles:
             article_id = article.get("id") or article.get("article_id") or "?"
             # print(f"{article_id}. [{article.get('category', 'general')}] {article['title']} ({article['url']})")
-            print(
-                f"{article_id}. {article['title']} [{article.get('category', 'general')}]"
-            )
+            print(f"Article ID: {article_id}\nArticle_title: {article['title']}\nArticle Category: {article.get('category', 'general')}\nArticle URL: ({article['url']})")
             print("------------------------------------------------------")
 
     def get_today_headlines(self):
-        print("\nPlease choose the options below for Headlines")
+        print("\nChoose category:\n")
         category_map = self.show_categories()
         category_choice = category_map.get(input("Choose: "), "all")
         result = requests.get(

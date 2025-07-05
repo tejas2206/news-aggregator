@@ -39,7 +39,7 @@ def get_headlines_by_range_internal(start, end, category="all"):
         SELECT n.id, n.title, n.url, c.name as category
         FROM news_articles n
         LEFT JOIN categories c ON n.category_id = c.id
-        WHERE DATE(n.published_at) BETWEEN %s AND %s
+        WHERE DATE(n.created_at) BETWEEN %s AND %s
     """
     query_params = [start, end]
 
