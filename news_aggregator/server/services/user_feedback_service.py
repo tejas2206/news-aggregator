@@ -14,14 +14,29 @@ class UserFeedbackService:
             user = cursor.fetchone()
             if not user:
                 return False, "User not found"
+
+            user_id = user[0]
+
             cursor.execute(
-                """
-                INSERT INTO article_feedback (user_id, article_id, feedback_type)
-                VALUES (%s, %s, 'like')
-                ON DUPLICATE KEY UPDATE feedback_type = 'like'
-            """,
-                (user[0], article_id),
+                "SELECT feedback_type FROM article_feedback WHERE user_id = %s AND article_id = %s",
+                (user_id, article_id),
             )
+            existing_feedback = cursor.fetchone()
+
+            if existing_feedback:
+                if existing_feedback[0] == "like":
+                    return False, "You have already liked this article."
+                else:
+                    cursor.execute(
+                        "UPDATE article_feedback SET feedback_type = 'like' WHERE user_id = %s AND article_id = %s",
+                        (user_id, article_id),
+                    )
+            else:
+                cursor.execute(
+                    "INSERT INTO article_feedback (user_id, article_id, feedback_type) VALUES (%s, %s, 'like')",
+                    (user_id, article_id),
+                )
+
             conn.commit()
             cursor.close()
             return True, "You liked this article."
@@ -37,14 +52,29 @@ class UserFeedbackService:
             user = cursor.fetchone()
             if not user:
                 return False, "User not found"
+
+            user_id = user[0]
+
             cursor.execute(
-                """
-                INSERT INTO article_feedback (user_id, article_id, feedback_type)
-                VALUES (%s, %s, 'dislike')
-                ON DUPLICATE KEY UPDATE feedback_type = 'dislike'
-            """,
-                (user[0], article_id),
+                "SELECT feedback_type FROM article_feedback WHERE user_id = %s AND article_id = %s",
+                (user_id, article_id),
             )
+            existing_feedback = cursor.fetchone()
+
+            if existing_feedback:
+                if existing_feedback[0] == "dislike":
+                    return False, "You have already disliked this article."
+                else:
+                    cursor.execute(
+                        "UPDATE article_feedback SET feedback_type = 'dislike' WHERE user_id = %s AND article_id = %s",
+                        (user_id, article_id),
+                    )
+            else:
+                cursor.execute(
+                    "INSERT INTO article_feedback (user_id, article_id, feedback_type) VALUES (%s, %s, 'dislike')",
+                    (user_id, article_id),
+                )
+
             conn.commit()
             cursor.close()
             return True, "You disliked this article."
