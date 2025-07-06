@@ -1,26 +1,20 @@
 from flask import Blueprint, request, jsonify
-from server.db.database import get_db
+import logging
+from server.services.admin_service import AdminService
 
 admin_bp = Blueprint("admin", __name__)
+admin_service = AdminService(logger=logging.getLogger("admin_service"))
 
 
 @admin_bp.route("/servers/status", methods=["GET"])
 def view_server_status():
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT id, name, status, last_accessed FROM external_servers")
-    servers = cursor.fetchall()
-    cursor.close()
+    servers = admin_service.get_server_status()
     return jsonify({"status": "success", "servers": servers})
 
 
 @admin_bp.route("/servers/details", methods=["GET"])
 def view_server_details():
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT id, name, api_key FROM external_servers")
-    servers = cursor.fetchall()
-    cursor.close()
+    servers = admin_service.get_server_details()
     return jsonify({"status": "success", "servers": servers})
 
 
@@ -29,19 +23,15 @@ def update_server_api_key():
     data = request.get_json()
     server_id = data.get("server_id")
     new_key = data.get("api_key")
-
     if not server_id or not new_key:
         return jsonify({"status": "error", "message": "Missing fields"}), 400
-
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute(
-        "UPDATE external_servers SET api_key = %s WHERE id = %s", (new_key, server_id)
-    )
-    conn.commit()
-    cursor.close()
-
-    return jsonify({"status": "success", "message": "API key updated successfully."})
+    success = admin_service.update_server_api_key(server_id, new_key)
+    if success:
+        return jsonify(
+            {"status": "success", "message": "API key updated successfully."}
+        )
+    else:
+        return jsonify({"status": "error", "message": "Failed to update API key."}), 500
 
 
 @admin_bp.route("/categories/add", methods=["POST"])
@@ -50,35 +40,16 @@ def add_category():
     name = data.get("name")
     if not name:
         return jsonify({"status": "error", "message": "Missing category name"}), 400
-
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("INSERT IGNORE INTO categories (name) VALUES (%s)", (name,))
-    conn.commit()
-    cursor.close()
-
-    return jsonify({"status": "success", "message": f"Category '{name}' added."})
+    success = admin_service.add_category(name)
+    if success:
+        return jsonify({"status": "success", "message": f"Category '{name}' added."})
+    else:
+        return jsonify({"status": "error", "message": "Failed to add category."}), 500
 
 
 @admin_bp.route("/reports", methods=["GET"])
 def view_reported_articles():
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("""
-        SELECT 
-            MAX(na.id) AS id,
-            MAX(na.title) AS title,
-            MAX(na.url) AS url,
-            MAX(na.content) AS content,
-            COUNT(ar.id) AS report_count
-        FROM article_reports ar
-        JOIN news_articles na ON ar.article_id = na.id
-        WHERE na.is_hidden = 1 or na.is_hidden = 0
-        GROUP BY ar.article_id
-        ORDER BY report_count DESC
-    """)
-    reports = cursor.fetchall()
-    cursor.close()
+    reports = admin_service.get_reported_articles()
     return jsonify({"status": "success", "reports": reports})
 
 
@@ -87,71 +58,90 @@ def admin_hide_article():
     data = request.get_json()
     article_id = data.get("article_id")
     hide = data.get("hide", True)
-
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("UPDATE news_articles SET is_hidden = %s WHERE id = %s", (hide, article_id))
-    conn.commit()
-    cursor.close()
+    success = admin_service.hide_article(article_id, hide)
     status = "hidden" if hide else "unhidden"
-    return jsonify({"status": "success", "message": f"Article {article_id} {status} successfully."})
+    if success:
+        return jsonify(
+            {
+                "status": "success",
+                "message": f"Article {article_id} {status} successfully.",
+            }
+        )
+    else:
+        return (
+            jsonify(
+                {
+                    "status": "error",
+                    "message": f"Failed to update article {article_id}.",
+                }
+            ),
+            500,
+        )
+
 
 @admin_bp.route("/categories/toggle", methods=["POST"])
 def toggle_category_visibility():
     data = request.get_json()
     category_name = data.get("category")
+    success = admin_service.toggle_category_visibility(category_name)
+    if success:
+        return jsonify(
+            {
+                "status": "success",
+                "message": f"Visibility toggled for category '{category_name}'.",
+            }
+        )
+    else:
+        return (
+            jsonify(
+                {
+                    "status": "error",
+                    "message": f"Failed to toggle category '{category_name}'.",
+                }
+            ),
+            500,
+        )
 
-    conn = get_db()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        UPDATE categories
-        SET hidden = NOT hidden
-        WHERE name = %s
-    """, (category_name,))
-    
-    conn.commit()
-    cursor.close()
-
-    return jsonify({"status": "success", "message": f"Visibility toggled for category '{category_name}'."})
 
 @admin_bp.route("/blocked_keywords", methods=["POST"])
 def add_blocked_keyword():
     data = request.get_json()
     keyword = data.get("keyword")
+    success = admin_service.add_blocked_keyword(keyword)
+    if success:
+        return jsonify(
+            {"status": "success", "message": f"Keyword '{keyword}' blocked."}
+        )
+    else:
+        return (
+            jsonify(
+                {"status": "error", "message": f"Failed to block keyword '{keyword}'."}
+            ),
+            500,
+        )
 
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("""
-        INSERT IGNORE INTO blocked_keywords (keyword)
-        VALUES (%s)
-    """, (keyword,))
-    conn.commit()
-    cursor.close()
-
-    return jsonify({"status": "success", "message": f"Keyword '{keyword}' blocked."})
 
 @admin_bp.route("/blocked_keywords", methods=["DELETE"])
 def delete_blocked_keyword():
     keyword = request.args.get("keyword")
+    success = admin_service.remove_blocked_keyword(keyword)
+    if success:
+        return jsonify(
+            {"status": "success", "message": f"Keyword '{keyword}' unblocked."}
+        )
+    else:
+        return (
+            jsonify(
+                {
+                    "status": "error",
+                    "message": f"Failed to unblock keyword '{keyword}'.",
+                }
+            ),
+            500,
+        )
 
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("""
-        DELETE FROM blocked_keywords
-        WHERE keyword = %s
-    """, (keyword,))
-    conn.commit()
-    cursor.close()
-
-    return jsonify({"status": "success", "message": f"Keyword '{keyword}' unblocked."})
 
 @admin_bp.route("/blocked_keywords", methods=["GET"])
 def list_blocked_keywords():
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT keyword FROM blocked_keywords")
-    keywords = [row["keyword"] for row in cursor.fetchall()]
-    cursor.close()
-
+    keywords = admin_service.get_blocked_keywords()
     return jsonify({"status": "success", "keywords": keywords})

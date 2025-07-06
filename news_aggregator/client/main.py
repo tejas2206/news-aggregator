@@ -1,16 +1,26 @@
 from datetime import datetime
-from services.auth_handler import AuthHandler
-from services.news_service import NewsService
-from services.notification_service import NotificationServiceCLI
-from services.admin_service import AdminService
+import logging
+
+from services.auth_handler import AuthService, AuthUI
+from services.news_service import NewsService, NewsServiceUI
+from services.notification_service import NotificationService, NotificationServiceUI
+from services.admin_service import AdminService, AdminServiceUI
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    handlers=[logging.FileHandler("news_aggregator.log"), logging.StreamHandler()],
+)
 
 BASE_URL = "http://localhost:5000"
 session = {}
 
 
 def user_menu():
-    news = NewsService(BASE_URL, session)
-    notify = NotificationServiceCLI(session, BASE_URL)
+    news_service = NewsService(BASE_URL, session)
+    news_ui = NewsServiceUI(news_service)
+    notification_service = NotificationService(BASE_URL)
+    notify_ui = NotificationServiceUI(notification_service, session)
 
     while True:
         print(
@@ -24,13 +34,13 @@ def user_menu():
         choice = input("Choose: ")
 
         if choice == "1":
-            news.handle_headlines()
+            news_ui.handle_headlines()
         elif choice == "2":
-            news.view_saved_articles()
+            news_ui.view_saved_articles()
         elif choice == "3":
-            news.search_articles()
+            news_ui.search_articles()
         elif choice == "4":
-            notify.notifications_menu()
+            notify_ui.notifications_menu()
         elif choice == "5":
             break
         else:
@@ -38,7 +48,8 @@ def user_menu():
 
 
 def admin_menu():
-    admin = AdminService(BASE_URL)
+    admin_service = AdminService(BASE_URL)
+    admin_ui = AdminServiceUI(admin_service)
 
     while True:
         print("\nAdmin Menu")
@@ -54,21 +65,21 @@ def admin_menu():
 
         choice = input("Choose: ").strip()
         if choice == "1":
-            admin.view_server_status()
+            admin_ui.show_server_status()
         elif choice == "2":
-            admin.view_server_details()
+            admin_ui.show_server_details()
         elif choice == "3":
-            admin.update_server_api_key()
+            admin_ui.update_server_api_key()
         elif choice == "4":
-            admin.add_news_category()
+            admin_ui.add_news_category()
         elif choice == "5":
-            admin.view_reported_articles()
+            admin_ui.show_reported_articles()
         elif choice == "6":
-            admin.hide_article_visibility()
+            admin_ui.hide_article_visibility()
         elif choice == "7":
-            admin.toggle_category_visibility()
+            admin_ui.toggle_category_visibility()
         elif choice == "8":
-            admin.manage_blocked_keywords()
+            admin_ui.manage_blocked_keywords()
         elif choice == "9":
             print("Logging out of admin dashboard.")
             break
@@ -77,7 +88,8 @@ def admin_menu():
 
 
 def main():
-    auth = AuthHandler(session, BASE_URL)
+    auth_service = AuthService(BASE_URL)
+    auth_ui = AuthUI(auth_service, session)
 
     while True:
         print(
@@ -89,14 +101,14 @@ def main():
 
         choice = input("Choose: ").strip()
         if choice == "1":
-            result = auth.login()
+            result = auth_ui.login()
             if result:
                 if session["role"] == "admin":
                     admin_menu()
                 else:
                     user_menu()
         elif choice == "2":
-            auth.signup()
+            auth_ui.signup()
         elif choice == "3":
             print("Exiting News Aggregator.")
             break

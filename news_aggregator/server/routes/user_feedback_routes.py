@@ -1,31 +1,23 @@
 from flask import Blueprint, request, jsonify
-from server.db.database import get_db
+import logging
+from server.services.user_feedback_service import UserFeedbackService
 
 user_feedback_bp = Blueprint("user_feedback", __name__)
+user_feedback_service = UserFeedbackService(
+    logger=logging.getLogger("user_feedback_service")
+)
+
 
 @user_feedback_bp.route("/feedback/like", methods=["POST"])
 def like_article():
     data = request.get_json()
     email = data.get("email")
     article_id = data.get("article_id")
-
-    conn = get_db()
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
-    user = cursor.fetchone()
-    if not user:
-        return jsonify({"status": "error", "message": "User not found"}), 404
-
-    cursor.execute("""
-        INSERT INTO article_feedback (user_id, article_id, feedback_type)
-        VALUES (%s, %s, 'like')
-        ON DUPLICATE KEY UPDATE feedback_type = 'like'
-    """, (user[0], article_id))
-
-    conn.commit()
-    cursor.close()
-    return jsonify({"status": "success", "message": "You liked this article."}), 200
+    success, message = user_feedback_service.like_article(email, article_id)
+    if success:
+        return jsonify({"status": "success", "message": message}), 200
+    else:
+        return jsonify({"status": "error", "message": message}), 400
 
 
 @user_feedback_bp.route("/feedback/dislike", methods=["POST"])
@@ -33,21 +25,8 @@ def dislike_article():
     data = request.get_json()
     email = data.get("email")
     article_id = data.get("article_id")
-
-    conn = get_db()
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
-    user = cursor.fetchone()
-    if not user:
-        return jsonify({"status": "error", "message": "User not found"}), 404
-
-    cursor.execute("""
-        INSERT INTO article_feedback (user_id, article_id, feedback_type)
-        VALUES (%s, %s, 'dislike')
-        ON DUPLICATE KEY UPDATE feedback_type = 'dislike'
-    """, (user[0], article_id))
-
-    conn.commit()
-    cursor.close()
-    return jsonify({"status": "success", "message": "You disliked this article."}), 200
+    success, message = user_feedback_service.dislike_article(email, article_id)
+    if success:
+        return jsonify({"status": "success", "message": message}), 200
+    else:
+        return jsonify({"status": "error", "message": message}), 400
