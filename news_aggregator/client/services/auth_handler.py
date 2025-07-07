@@ -19,7 +19,27 @@ class AuthService:
         pattern = r"^[\w\.-]+@[\w\.-]+\.\w+$"
         return re.match(pattern, email)
 
+    def is_valid_password(self, password):
+        if len(password) < 6:
+            return False, "Password must be at least 6 characters long"
+
+        if not re.search(r"[A-Z]", password):
+            return False, "Password must contain at least one capital letter"
+
+        if not re.search(r"\d", password):
+            return False, "Password must contain at least one digit"
+
+        special_chars = r'[!@#$%^&*()_+\-=\[\]{};\':"\\|,.<>\/?]'
+        if not re.search(special_chars, password):
+            return False, "Password must contain special character"
+
+        return True, "Password is valid"
+
     def signup(self, username, email, password):
+        is_valid, validation_message = self.is_valid_password(password)
+        if not is_valid:
+            return validation_message
+
         try:
             response = requests.post(
                 f"{self.base_url}/auth/signup",
