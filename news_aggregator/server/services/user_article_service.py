@@ -1,6 +1,5 @@
 import logging
 from server.db.database import get_db
-from datetime import datetime
 
 
 class UserArticleService:

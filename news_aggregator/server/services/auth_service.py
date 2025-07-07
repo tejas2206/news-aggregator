@@ -35,9 +35,7 @@ class AuthService:
             cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
             if cursor.fetchone():
                 return False, "User already exists"
-            hashed = bcrypt.hashpw(
-                password.encode(), bcrypt.gensalt()
-            ).decode()
+            hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
             cursor.execute(
                 """INSERT INTO users (username, email, password, role)
                    VALUES (%s, %s, %s, %s)""",

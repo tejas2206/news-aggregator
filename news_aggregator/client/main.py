@@ -1,10 +1,14 @@
 from datetime import datetime
 import logging
 
-from services.auth_handler import AuthService, AuthUI
-from services.news_service import NewsService, NewsServiceUI
-from services.notification_service import NotificationService, NotificationServiceUI
-from services.admin_service import AdminService, AdminServiceUI
+from services.auth_handler import AuthService
+from services.news_service import NewsService
+from services.notification_service import NotificationService
+from services.admin_service import AdminService
+from ui.auth_ui import AuthUI
+from ui.news_ui import NewsServiceUI
+from ui.notification_ui import NotificationServiceUI
+from ui.admin_ui import AdminServiceUI
 
 logging.basicConfig(
     level=logging.INFO,
@@ -61,10 +65,9 @@ def admin_menu():
         print("3. Update External Server API Key")
         print("4. Add News Category")
         print("5. View Reported Articles")
-        print("6. Hide Article Visibility")
-        print("7. Toggle Category Visibility")
-        print("8. Manage blocked keywords")
-        print("9. Logout")
+        print("6. Toggle Category Visibility")
+        print("7. Manage blocked keywords")
+        print("8. Logout")
 
         choice = input("Choose: ").strip()
         if choice == "1":
@@ -76,14 +79,24 @@ def admin_menu():
         elif choice == "4":
             admin_ui.add_news_category()
         elif choice == "5":
-            admin_ui.show_reported_articles()
+            while True:
+                admin_ui.show_reported_articles()
+                print("\nActions:")
+                print("1. Hide Article Visibility")
+                print("2. Back")
+
+                sub_choice = input("Choose: ").strip()
+                if sub_choice == "1":
+                    admin_ui.hide_article_visibility()
+                elif sub_choice == "2":
+                    break
+                else:
+                    print("Invalid choice. Please try again.")
         elif choice == "6":
-            admin_ui.hide_article_visibility()
-        elif choice == "7":
             admin_ui.toggle_category_visibility()
-        elif choice == "8":
+        elif choice == "7":
             admin_ui.manage_blocked_keywords()
-        elif choice == "9":
+        elif choice == "8":
             print("Logging out of admin dashboard.")
             break
         else:

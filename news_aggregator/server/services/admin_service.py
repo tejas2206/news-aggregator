@@ -66,10 +66,11 @@ class AdminService:
             cursor.execute(
                 """
                 SELECT 
-                    MAX(na.id) AS id,
-                    MAX(na.title) AS title,
-                    MAX(na.url) AS url,
-                    MAX(na.content) AS content,
+                    na.id AS id,
+                    na.title AS title,
+                    na.is_hidden AS is_hidden,
+                    na.url AS url,
+                    na.content AS content,
                     COUNT(ar.id) AS report_count
                 FROM article_reports ar
                 JOIN news_articles na ON ar.article_id = na.id
