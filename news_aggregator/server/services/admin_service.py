@@ -101,6 +101,20 @@ class AdminService:
             self.logger.error(f"Error hiding article: {e}")
             return False
 
+    def get_hidden_categories(self):
+        try:
+            conn = get_db()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute(
+                "SELECT id, name FROM categories WHERE hidden = 1 ORDER BY name"
+            )
+            categories = cursor.fetchall()
+            cursor.close()
+            return categories
+        except Exception as e:
+            self.logger.error(f"Error fetching hidden categories: {e}")
+            return []
+
     def toggle_category_visibility(self, category_name):
         try:
             conn = get_db()
@@ -142,12 +156,20 @@ class AdminService:
         try:
             conn = get_db()
             cursor = conn.cursor()
+        
             cursor.execute(
-                """
-                DELETE FROM blocked_keywords
-                WHERE keyword = %s
-            """,
-                (keyword,),
+                "SELECT COUNT(*) FROM blocked_keywords WHERE keyword = %s",
+                (keyword,)
+            )
+            exists = cursor.fetchone()[0] > 0
+        
+            if not exists:
+                cursor.close()
+                return False
+        
+            cursor.execute(
+                "DELETE FROM blocked_keywords WHERE keyword = %s",
+                (keyword,)
             )
             conn.commit()
             cursor.close()

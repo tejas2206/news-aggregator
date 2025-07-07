@@ -44,6 +44,21 @@ class AdminServiceUI:
         message = self.admin_service.hide_article_visibility(article_id)
         print(message)
 
+    def unhide_article_visibility(self):
+        article_id = input("Enter Article ID to unhide: ")
+        message = self.admin_service.unhide_article_visibility(article_id)
+        print(message)
+
+    def show_hidden_categories(self):
+        categories = self.admin_service.get_hidden_categories()
+        if not categories:
+            print("\nNo categories are currently hidden.")
+            return
+
+        print("\nCurrently Hidden Categories:")
+        for category in categories:
+            print(f"- {category['name']}")
+
     def toggle_category_visibility(self):
         category = input("Enter category to toggle visibility: ").strip().lower()
         message = self.admin_service.toggle_category_visibility(category)

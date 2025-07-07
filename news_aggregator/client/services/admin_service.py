@@ -68,14 +68,31 @@ class AdminService:
             return []
 
     def hide_article_visibility(self, article_id):
+        data = {"article_id": article_id, "hide": True}
+        response = requests.post(f"{self.base_url}/admin/articles/hide", json=data)
+        if response.status_code == 200:
+            return response.json().get("message", "Article hidden successfully.")
+        else:
+            return f"Failed to hide article: {response.text}"
+
+    def unhide_article_visibility(self, article_id):
+        data = {"article_id": article_id, "hide": False}
+        response = requests.post(f"{self.base_url}/admin/articles/hide", json=data)
+        if response.status_code == 200:
+            return response.json().get("message", "Article unhidden successfully.")
+        else:
+            return f"Failed to unhide article: {response.text}"
+
+    def get_hidden_categories(self):
         try:
-            result = requests.post(
-                f"{self.base_url}/admin/articles/hide", json={"article_id": article_id}
-            )
-            return result.json().get("message")
+            response = requests.get(f"{self.base_url}/admin/categories/hidden")
+            if response.status_code == 200:
+                return response.json().get("categories", [])
+            else:
+                return []
         except Exception as e:
-            self.logger.error(f"Failed to hide article: {e}")
-            return "Failed to hide article."
+            print(f"Error fetching hidden categories: {e}")
+            return []
 
     def toggle_category_visibility(self, category):
         try:
@@ -100,13 +117,18 @@ class AdminService:
 
     def remove_blocked_keyword(self, keyword):
         try:
-            res = requests.delete(
-                f"{self.base_url}/admin/blocked_keywords", params={"keyword": keyword}
+            data = {"keyword": keyword}
+            response = requests.delete(
+                f"{self.base_url}/admin/blocked_keywords", json=data
             )
-            return res.json().get("message")
+            if response.status_code == 200:
+                return f"Keyword '{keyword}' has been successfully unblocked."
+            elif response.status_code == 404:
+                return f"Keyword '{keyword}' is not currently blocked."
+            else:
+                return f"Failed to unblock keyword: {response.text}"
         except Exception as e:
-            self.logger.error(f"Failed to remove blocked keyword: {e}")
-            return "Failed to remove blocked keyword."
+            return f"Error removing blocked keyword: {e}"
 
     def get_blocked_keywords(self):
         try:

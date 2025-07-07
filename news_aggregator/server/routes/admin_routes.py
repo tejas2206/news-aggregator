@@ -79,6 +79,12 @@ def admin_hide_article():
         )
 
 
+@admin_bp.route("/categories/hidden", methods=["GET"])
+def get_hidden_categories():
+    categories = admin_service.get_hidden_categories()
+    return jsonify({"status": "success", "categories": categories})
+
+
 @admin_bp.route("/categories/toggle", methods=["POST"])
 def toggle_category_visibility():
     data = request.get_json()
@@ -123,21 +129,28 @@ def add_blocked_keyword():
 
 @admin_bp.route("/blocked_keywords", methods=["DELETE"])
 def delete_blocked_keyword():
-    keyword = request.args.get("keyword")
+    data = request.get_json()
+    keyword = data.get("keyword")
+    if not keyword:
+        return jsonify({"status": "error", "message": "Keyword is required."}), 400
+
     success = admin_service.remove_blocked_keyword(keyword)
     if success:
         return jsonify(
-            {"status": "success", "message": f"Keyword '{keyword}' unblocked."}
+            {
+                "status": "success",
+                "message": f"Keyword '{keyword}' removed successfully.",
+            }
         )
     else:
         return (
             jsonify(
                 {
                     "status": "error",
-                    "message": f"Failed to unblock keyword '{keyword}'.",
+                    "message": f"Keyword '{keyword}' is not currently blocked.",
                 }
             ),
-            500,
+            404,
         )
 
 

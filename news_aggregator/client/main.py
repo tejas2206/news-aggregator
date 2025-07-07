@@ -5,10 +5,10 @@ from services.auth_handler import AuthService
 from services.news_service import NewsService
 from services.notification_service import NotificationService
 from services.admin_service import AdminService
-from ui.auth_ui import AuthUI
-from ui.news_ui import NewsServiceUI
-from ui.notification_ui import NotificationServiceUI
-from ui.admin_ui import AdminServiceUI
+from cli.auth_ui import AuthUI
+from cli.news_ui import NewsServiceUI
+from cli.notification_ui import NotificationServiceUI
+from cli.admin_ui import AdminServiceUI
 
 logging.basicConfig(
     level=logging.INFO,
@@ -81,18 +81,22 @@ def admin_menu():
         elif choice == "5":
             while True:
                 admin_ui.show_reported_articles()
-                print("\nActions:")
+                print("\nReported Articles Actions:")
                 print("1. Hide Article Visibility")
-                print("2. Back")
-
+                print("2. Unhide Article Visibility")
+                print("3. Back to Admin Menu")
+                
                 sub_choice = input("Choose: ").strip()
                 if sub_choice == "1":
                     admin_ui.hide_article_visibility()
                 elif sub_choice == "2":
+                    admin_ui.unhide_article_visibility()
+                elif sub_choice == "3":
                     break
                 else:
                     print("Invalid choice. Please try again.")
         elif choice == "6":
+            admin_ui.show_hidden_categories()
             admin_ui.toggle_category_visibility()
         elif choice == "7":
             admin_ui.manage_blocked_keywords()
