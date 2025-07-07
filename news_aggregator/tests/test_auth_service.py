@@ -13,9 +13,9 @@ class TestAuthService(unittest.TestCase):
         mock_conn = MagicMock()
         mock_cursor = MagicMock()
         mock_cursor.fetchone.return_value = {
-            "id": 1, 
+            "id": 1,
             "email": "test@example.com",
-            "password": "hashed_password"
+            "password": "hashed_password",
         }
         mock_conn.cursor.return_value = mock_cursor
         mock_get_db.return_value = mock_conn
@@ -25,7 +25,6 @@ class TestAuthService(unittest.TestCase):
         self.assertTrue(success)
         self.assertEqual(user["email"], "test@example.com")
 
-    # Add more tests for other methods...
 
 if __name__ == "__main__":
     unittest.main()

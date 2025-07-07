@@ -139,6 +139,27 @@ class NewsService:
             self.logger.error(f"Error disliking article: {e}")
             return "Error disliking article."
 
+    def view_personalized_articles(self):
+        res = requests.get(
+            f"{self.base_url}/user/personalized",
+            params={"email": self.session["email"]}
+        )
+
+        if res.status_code != 200:
+            print("Failed to fetch personalized articles.")
+            return
+
+        articles = res.json().get("articles", [])
+        if not articles:
+            print("No personalized articles found.")
+            return
+
+        for idx, article in enumerate(articles, start=1):
+            print(f"{idx}. {article['title']}")
+            print(f"   URL: {article['url']}")
+            print(f"   Category: {article['category']}")
+            print()
+
 
 class NewsServiceUI:
     def __init__(self, news_service):
@@ -221,7 +242,7 @@ class NewsServiceUI:
             self.get_range_headlines()
         elif choice == "3":
             return
-
+        
     def get_today_headlines(self):
         print("\nChoose category:\n")
         category_map = self.show_categories()

@@ -11,7 +11,7 @@ class TestUserFeedbackService(unittest.TestCase):
     def test_like_article(self, mock_get_db):
         mock_conn = MagicMock()
         mock_cursor = MagicMock()
-        mock_cursor.fetchone.return_value = (1,)  # user id as tuple
+        mock_cursor.fetchone.return_value = (1,)
         mock_conn.cursor.return_value = mock_cursor
         mock_get_db.return_value = mock_conn
 
@@ -19,7 +19,6 @@ class TestUserFeedbackService(unittest.TestCase):
         self.assertTrue(success)
         self.assertEqual(message, "You liked this article.")
 
-    # Add more tests for other methods...
 
 if __name__ == "__main__":
     unittest.main()

@@ -30,7 +30,8 @@ def user_menu():
         print("2. Saved Articles")
         print("3. Search")
         print("4. Notifications")
-        print("5. Logout")
+        print("5. Personalized Articles")
+        print("6. Logout")
         choice = input("Choose: ")
 
         if choice == "1":
@@ -42,6 +43,8 @@ def user_menu():
         elif choice == "4":
             notify_ui.notifications_menu()
         elif choice == "5":
+            news_service.view_personalized_articles()
+        elif choice == "6":
             break
         else:
             print("Invalid choice. Try again.")
