@@ -91,6 +91,14 @@ class AdminService:
             conn = get_db()
             cursor = conn.cursor()
             cursor.execute(
+                "SELECT id FROM news_articles WHERE id = %s",
+                (article_id,)
+            )
+            article = cursor.fetchone()
+            if not article:
+                cursor.close()
+                return False
+            cursor.execute(
                 "UPDATE news_articles SET is_hidden = %s WHERE id = %s",
                 (hide, article_id),
             )
@@ -162,11 +170,9 @@ class AdminService:
                 (keyword,)
             )
             exists = cursor.fetchone()[0] > 0
-        
             if not exists:
                 cursor.close()
                 return False
-        
             cursor.execute(
                 "DELETE FROM blocked_keywords WHERE keyword = %s",
                 (keyword,)

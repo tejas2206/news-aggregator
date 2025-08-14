@@ -76,25 +76,46 @@ class NotificationService:
         return keyword_match
 
     def _send_email(self, user_id, recipient, articles):
+        """Send email notification and record sent notifications."""
         if not self.email_user or not self.email_pass:
             self.logger.error("Email not configured in .env")
             return
+        
+        try:
+            self._send_email_message(recipient, articles)
+            self._record_sent_notifications(user_id, articles)
+        except Exception as e:
+            self.logger.error(f"Failed to send email to {recipient}: {e}")
+
+    def _send_email_message(self, recipient, articles):
+        """Compose and send email message via SMTP."""
+        msg = self._compose_email_message(recipient, articles)
+        
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+            smtp.login(self.email_user, self.email_pass)
+            smtp.send_message(msg)
+            self.logger.info(f"Email sent to {recipient}")
+
+    def _compose_email_message(self, recipient, articles):
+        """Create the email message content."""
         msg = EmailMessage()
         msg["Subject"] = "News Alert - Matching Articles"
         msg["From"] = self.email_user
         msg["To"] = recipient
+        
         body = "Hello!\nHere are some articles matching your preferences:\n\n"
         for article in articles:
             body += f"{article['title']} ({article['url']})\n\n"
         body += "\nRegards,\nNews Aggregator Team"
+        
         msg.set_content(body)
+        return msg
+
+    def _record_sent_notifications(self, user_id, articles):
+        """Record sent notifications in the database."""
+        conn = get_db()
+        cursor = conn.cursor()
         try:
-            with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-                smtp.login(self.email_user, self.email_pass)
-                smtp.send_message(msg)
-                self.logger.info(f"Email sent to {recipient}")
-            conn = get_db()
-            cursor = conn.cursor()
             for article in articles:
                 cursor.execute(
                     """
@@ -104,9 +125,8 @@ class NotificationService:
                     (user_id, article["id"], datetime.now()),
                 )
             conn.commit()
+        finally:
             cursor.close()
-        except Exception as e:
-            self.logger.error(f"Failed to send email to {recipient}: {e}")
 
     def notify_admin_about_report(self, article_id, reported_by):
         if not self.email_user or not self.email_pass:

@@ -48,6 +48,7 @@ def user_menu():
             notify_ui.notifications_menu()
         elif choice == "5":
             news_service.view_personalized_articles()
+            news_ui.handle_article_options()
         elif choice == "6":
             break
         else:
@@ -81,10 +82,10 @@ def admin_menu():
         elif choice == "5":
             while True:
                 admin_ui.show_reported_articles()
-                print("\nReported Articles Actions:")
+                print("\nActions:")
                 print("1. Hide Article Visibility")
                 print("2. Unhide Article Visibility")
-                print("3. Back to Admin Menu")
+                print("3. Back")
                 
                 sub_choice = input("Choose: ").strip()
                 if sub_choice == "1":

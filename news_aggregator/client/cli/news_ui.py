@@ -4,7 +4,7 @@ class NewsServiceUI:
 
     def show_categories(self):
         categories = self.news_service.fetch_categories()
-        category_map = {str(i + 1): cat for i, cat in enumerate(categories)}
+        category_map = {str(index + 1): category for index, category in enumerate(categories)}
         for key, value in category_map.items():
             print(f"{key}. {value.title()}")
         return category_map
@@ -68,6 +68,7 @@ class NewsServiceUI:
             print(f"Likes: {article['likes']}, Dislikes: {article['dislikes']}")
             print(f"URL: {article['url']}")
             print("-" * 30)
+        self.handle_article_options()
 
     def handle_headlines(self):
         print("\nH E A D L I N E S\n")

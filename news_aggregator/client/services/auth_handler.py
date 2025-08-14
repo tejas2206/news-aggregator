@@ -18,6 +18,37 @@ class AuthService:
         pattern = r"^[\w\.-]+@[\w\.-]+\.\w+$"
         return re.match(pattern, email)
 
+    def is_valid_username(self, username):
+        if len(username) < 3:
+            return False, "Username must be at least 3 characters long"
+
+        if len(username) > 20:
+            return False, "Username must be less than 20 characters long"
+
+        if not re.match(r"^[a-zA-Z0-9_]+$", username):
+            return False, "Username can only contain letters, numbers, and underscores"
+
+        if username[0].isdigit():
+            return False, "Username cannot start with a number"
+
+        return True, "Username is valid"
+
+    def is_username_unique(self, username):
+        try:
+            response = requests.get(
+                f"{self.base_url}/auth/check_username", params={"username": username}
+            )
+            data = response.json()
+            if response.status_code == 200:
+                return data.get("is_unique", False), data.get("message", "")
+            else:
+                return False, data.get(
+                    "message", "Unable to check username availability"
+                )
+        except Exception as e:
+            self.logger.error(f"Username check error: {e}")
+            return False, f"Error checking username: {e}"
+
     def is_valid_password(self, password):
         if len(password) < 6:
             return False, "Password must be at least 6 characters long"
@@ -35,9 +66,17 @@ class AuthService:
         return True, "Password is valid"
 
     def signup(self, username, email, password):
-        is_valid, validation_message = self.is_valid_password(password)
-        if not is_valid:
-            return validation_message
+        is_valid_user, username_message = self.is_valid_username(username)
+        if not is_valid_user:
+            return username_message
+
+        is_unique, uniqueness_message = self.is_username_unique(username)
+        if not is_unique:
+            return uniqueness_message
+
+        is_valid_pass, password_message = self.is_valid_password(password)
+        if not is_valid_pass:
+            return password_message
 
         try:
             response = requests.post(
@@ -46,9 +85,8 @@ class AuthService:
             )
             response.raise_for_status()
             return response.json().get("message", "Signup successful.")
-        except Exception as e:
-            self.logger.error(f"Signup error: {e}")
-            return f"Signup error: {e}"
+        except Exception:
+            return "User already exists. Please try a different username or email."
 
     def login(self, email, password):
         try:

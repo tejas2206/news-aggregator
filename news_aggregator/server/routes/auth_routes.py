@@ -19,6 +19,19 @@ def signup():
         return jsonify({"status": "error", "message": message}), 400
 
 
+@auth_bp.route("/check_username", methods=["GET"])
+def check_username():
+    username = request.args.get("username")
+    if not username:
+        return (
+            jsonify({"is_unique": False, "message": "Username parameter is required"}),
+            400,
+        )
+
+    is_unique, message = auth_service.is_username_unique(username)
+    return jsonify({"is_unique": is_unique, "message": message}), 200
+
+
 @auth_bp.route("/login", methods=["POST"])
 def login():
     data = request.get_json()

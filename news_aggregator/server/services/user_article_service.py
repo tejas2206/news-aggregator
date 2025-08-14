@@ -72,6 +72,16 @@ class UserArticleService:
             user = cursor.fetchone()
             if not user:
                 return False, "User not found"
+
+            cursor.execute(
+                "SELECT 1 FROM saved_articles WHERE user_id = %s AND article_id = %s",
+                (user[0], article_id),
+            )
+            existing = cursor.fetchone()
+            if existing:
+                cursor.close()
+                return False, "Article already saved."
+
             cursor.execute(
                 "INSERT INTO saved_articles (user_id, article_id) VALUES (%s, %s)",
                 (user[0], article_id),
@@ -90,7 +100,18 @@ class UserArticleService:
             cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
             user = cursor.fetchone()
             if not user:
+                cursor.close()
                 return False, "User not found"
+
+            cursor.execute(
+                "SELECT 1 FROM saved_articles WHERE user_id = %s AND article_id = %s",
+                (user[0], article_id),
+            )
+            existing = cursor.fetchone()
+            if not existing:
+                cursor.close()
+                return False, "Article is not saved."
+
             cursor.execute(
                 "DELETE FROM saved_articles WHERE user_id = %s AND article_id = %s",
                 (user[0], article_id),

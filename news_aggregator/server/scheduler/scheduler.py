@@ -4,6 +4,7 @@ from datetime import datetime
 import importlib
 import pkgutil
 import logging
+import os
 from server.db.database import get_db
 from server.sources.base_source import NewsSource
 from server.services.notification_service import NotificationService
@@ -17,12 +18,14 @@ class NewsScheduler:
         self.notifier = NotificationService()
 
     def run(self):
+        interval_hours = int(os.getenv("SCHEDULER_INTERVAL_HOURS", 4))
+        check_interval_seconds = int(os.getenv("SCHEDULER_CHECK_INTERVAL_SECONDS", 60))
         self._fetch_and_process_articles()
-        schedule.every(4).hours.do(self._fetch_and_process_articles)
-        self.logger.info("Scheduler is active. It will run every 4 hours.")
+        schedule.every(interval_hours).hours.do(self._fetch_and_process_articles)
+        self.logger.info(f"Scheduler is active. It will run every {interval_hours} hours.")
         while True:
             schedule.run_pending()
-            time.sleep(60)
+            time.sleep(check_interval_seconds)
 
     def _load_fetchers(self):
         fetchers = []
@@ -102,7 +105,7 @@ class NewsScheduler:
                     article["id"] = result[0]
                 count += 1
             except Exception as e:
-                self.logger.warning(f"[WARNING] Skipped article: {e}")
+                return
         cursor.close()
         return count
 

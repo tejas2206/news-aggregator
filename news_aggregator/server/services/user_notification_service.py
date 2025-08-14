@@ -61,6 +61,16 @@ class UserNotificationService:
             user = cursor.fetchone()
             if not user:
                 return False, "User not found"
+            
+            cursor.execute(
+                "SELECT id FROM user_keywords WHERE user_id = %s AND keyword = %s",
+                (user[0], keyword),
+            )
+            existing_keyword = cursor.fetchone()
+            if existing_keyword:
+                cursor.close()
+                return False, "Keyword already exists in your alerts."
+
             cursor.execute(
                 """
                 INSERT IGNORE INTO user_keywords (user_id, keyword, enabled)
@@ -87,6 +97,11 @@ class UserNotificationService:
                 "DELETE FROM user_keywords WHERE user_id = %s AND keyword = %s",
                 (user[0], keyword),
             )
+
+            if cursor.rowcount == 0:
+                cursor.close()
+                return False, "Keyword not found in your alerts."
+
             conn.commit()
             cursor.close()
             return True, "Keyword removed."

@@ -155,6 +155,7 @@ class NewsService:
             return
 
         for index, article in enumerate(articles, start=1):
-            print(f"{index}. {article['title']}")
-            print(f"    URL: {article['url']}")
+            print(f"Article ID: {article['id']}")
+            print(f"Article Title: {article['title']}")
+            print(f"Article URL: {article['url']}")
             print()
